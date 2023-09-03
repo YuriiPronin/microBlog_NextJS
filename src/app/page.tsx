@@ -1,95 +1,114 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client'
+// React
+import React, { useState, useRef } from 'react';
+
+// Next
+import { useRouter } from 'next/navigation';
+
+// Material UI
+import { Box, Typography } from "@mui/material";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+
+// Firebase
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+
+// Helpers
+import { auth } from '@/helpers/firebase';
+import {
+  modalStyles,
+  authBox,
+  authTitle,
+  titleInputs,
+  authInput,
+  authButton,
+  authSelect,
+} from "@/helpers/styleConsts";
+import { SignUpArgs, SignInArgs, YourUserType } from '@/helpers/interface';
+
+// SCSS
+import '../app/styles/allStyles.scss';
+
 
 export default function Home() {
+
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const roleRef = useRef<HTMLSelectElement | null>(null);
+  const router= useRouter();
+
+  async function signUp({ e }: SignUpArgs): Promise<YourUserType | void> {
+    try {
+      e.preventDefault();
+  
+      const email = emailRef?.current?.value || '';
+      const password = passwordRef?.current?.value || '';
+        
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const user = userCredential.user;
+  
+      return user as YourUserType;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  
+  async function signIn({ e }: SignInArgs): Promise<YourUserType | void> {
+    try {
+      e.preventDefault();
+      
+      const email = emailRef?.current?.value || '';
+      const password = passwordRef?.current?.value || '';
+  
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      if (user) {
+        router.push('/homePage');
+      }
+  
+      return user as YourUserType;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <>
+      <Box sx={authBox}>
+        <Box sx={modalStyles}>
+          <form>
+          <Typography sx={authTitle}>Авторизуйтесь</Typography>
+          <Typography sx={titleInputs}>Email</Typography>
+          <TextField sx={authInput} type='email' inputRef={emailRef}/>
+          <Typography sx={titleInputs}>Пароль</Typography>
+          <TextField sx={authInput} type='password' inputRef={passwordRef}/>
+          <Typography sx={titleInputs}>Оберіть вашу роль</Typography>
+          <Button 
+            sx={authButton}
+            className='authButton'
+            onClick={(e) => signUp({ e })}
+            type='submit'
           >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+            Зареєструватися
+          </Button>
+          <Typography sx={titleInputs}>Вже зареєстровані?</Typography>
+          <Button 
+            sx={authButton}
+            className='authButton'
+            onClick={(e) => signIn({ e })}
+            type='submit'
+          >
+            Увійти
+          </Button>
+          </form>
+        </Box>
+      </Box>
+    </>
+  );
 }
